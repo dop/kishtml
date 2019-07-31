@@ -29,6 +29,8 @@
 (test tag->string
   (is (equalp "<hr>" (tag->string :hr)))
   (is (equalp "<br>" (tag->string :br)))
+  (is (equalp "<input type=\"text\" maxlength=20 tabindex=1 name=\"first_name\" required>"
+              (tag->string :input '((type . "text") (maxlength . 20) (tabindex . 1) (name . "first_name") (required . t)))))
   (is (equalp "<div class=\"sep\"/>" (tag->string :div '((class . "sep")))))
   (is (equalp "<a href=\"google.com\">Search</a>"
               (tag->string :a '((:href . "google.com")) '("Search"))))
@@ -39,19 +41,19 @@
               (tag->string :head () '((:title () "Blog"))))))
 
 (test ->string
+  (is (equalp "<body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
+              (->string '((:body () (:h1 () "My Blog") (:p () "Some text " (:a ((:href . "")) "a link")))))))
   (is (equalp "<!doctype html><body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
-              (->string '(:doctype (:body () (:h1 () "My Blog") (:p () "Some text " (:a ((:href . "")) "a link")))))))
-  (is (equalp "<!doctype html><body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
-              (->string '(:doctype (:body (:h1 "My Blog") (:p "Some text " (:a ((:href . "")) "a link")))))))
+              (->string '((:body (:h1 "My Blog") (:p "Some text " (:a ((:href . "")) "a link")))) :doctype t)))
 
-  (is (equalp "<!DOCTYPE html><HTML LANG=\"en\"><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"/><TITLE>Donatas' Blog</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"/><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"/></HEAD><BODY><H1>Donatas' Blog</H1><P>This is my blog</P></BODY></HTML>"
-              (->string '(:doctype
-                          (:html ((:lang . "en"))
-                           (:head
-                            (:meta ((:name . "charset") (:value . "utf-8")))
-                            (:title "Donatas' Blog")
-                            (:link ((:rel . "stylesheet") (:href . "style.css") (:type . "text/css")))
-                            (:script ((:type . "text/javascript") (:src . "scripts.js"))))
-                           (:body
-                            (:h1 "Donatas' Blog")
-                            (:p "This is my blog"))))))))
+  (is (equalp "<!DOCTYPE html><HTML LANG=\"en\"><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"><TITLE>Donatas' Blog</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"/><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"/></HEAD><BODY><H1>Donatas' Blog</H1><P>This is my blog</P></BODY></HTML>"
+              (->string '((:html ((:lang . "en"))
+                          (:head
+                           (:meta ((:name . "charset") (:value . "utf-8")))
+                           (:title "Donatas' Blog")
+                           (:link ((:rel . "stylesheet") (:href . "style.css") (:type . "text/css")))
+                           (:script ((:type . "text/javascript") (:src . "scripts.js"))))
+                          (:body
+                           (:h1 "Donatas' Blog")
+                           (:p "This is my blog"))))
+                        :doctype t))))

@@ -7,8 +7,10 @@
 (defun concat (&rest strings)
   (apply #'concatenate 'string strings))
 
-(defun ->string (doc)
-  (apply #'concat (mapcar #'fragment->string doc)))
+(defun ->string (doc &optional &key doctype)
+  (with-output-to-string (*standard-output*)
+    (when doctype (write-string "<!DOCTYPE html>"))
+    (write-string (apply #'concat (mapcar #'fragment->string doc)))))
 
 (defun pairp (obj)
   (and (consp obj)
@@ -20,7 +22,6 @@
 
 (defun fragment->string (fragment)
   (match fragment
-    (:doctype "<!DOCTYPE html>")
     ((list* tag attrs body)
      (cond ((and (listp attrs) (every #'pairp attrs))
             (tag->string tag attrs body))
@@ -54,11 +55,16 @@
       ""
       (concatenate 'string left value right)))
 
+(defparameter *open-tags*
+  '(:hr :br :input :img :meta))
+
 (defun tag->string (tag &optional attrs children)
   (declare (type symbol tag)
            (type list attrs children))
-  (case tag
-    (:hr "<HR>")
-    (:br "<BR>")
-    (t (concatenate 'string "<" (tag-name tag) (wrap-if (attrs->string attrs))
-                    (if children (concatenate 'string ">" (->string children) "</" (tag-name tag) ">") "/>")))))
+  (let ((self-closing-p (member tag *open-tags*)))
+    (concatenate 'string "<" (tag-name tag) (wrap-if (attrs->string attrs))
+                 (if self-closing-p
+                     ">"
+                 (if children
+                     (concatenate 'string ">" (->string children) "</" (tag-name tag) ">")
+                     "/>")))))
