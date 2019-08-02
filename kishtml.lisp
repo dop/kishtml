@@ -55,16 +55,14 @@
       ""
       (concatenate 'string left value right)))
 
-(defparameter *open-tags*
-  '(:hr :br :input :img :meta))
+(defparameter *void-elements*
+  '(:area :base :br :col :command :embed :hr :img :input :keygen :link :meta :param :source :track :wbr))
 
 (defun tag->string (tag &optional attrs children)
   (declare (type symbol tag)
            (type list attrs children))
-  (let ((self-closing-p (member tag *open-tags*)))
+  (let ((void-element-p (member tag *void-elements*)))
     (concatenate 'string "<" (tag-name tag) (wrap-if (attrs->string attrs))
-                 (if self-closing-p
+                 (if void-element-p
                      ">"
-                 (if children
-                     (concatenate 'string ">" (->string children) "</" (tag-name tag) ">")
-                     "/>")))))
+                     (concatenate 'string ">" (->string children) "</" (tag-name tag) ">")))))
