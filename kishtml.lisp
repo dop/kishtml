@@ -24,9 +24,7 @@
   (and (consp obj)
        (let ((a (car obj))
              (b (cdr obj)))
-         (and (atom a)
-              (atom b)
-              b))))
+         (and (atom a) (atom b) b))))
 
 (defun attr->string (name value)
   (cond
