@@ -53,7 +53,7 @@
     ((stringp obj)
      (encode-entities obj))
     ((atom obj)
-     (format nil "~A" obj))
+     (write-to-string obj))
     ((consp obj)
      (let ((tag (car obj))
            (attrs (cadr obj)))
