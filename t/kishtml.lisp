@@ -38,7 +38,7 @@
      (:h1 ,title)
      ,@content)))
 
-(test ->string
+(test ->fragment
   (is (equalp "" (->fragment nil)))
   (is (equalp "<hr>" (->fragment '(:hr))))
   (is (equalp "<br>" (->fragment '(:br))))
@@ -54,12 +54,17 @@
   (is (equalp "<body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
               (->fragment '(:body () (:h1 () "My Blog") (:p () "Some text " (:a ((:href . "")) "a link"))))))
   (is (equalp "<h1>&lt;title&gt;</h1><a href=\"http://search.com/?q=&quot;hello world&quot;\">link</a>"
-              (->fragment '(:h1 "<title>") '(:a ((:href . "http://search.com/?q=\"hello world\"")) "link"))))
-  (is (equalp "<!doctype html><body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
+              (->fragment '(:h1 "<title>") '(:a ((:href . "http://search.com/?q=\"hello world\"")) "link")))))
+
+(test ->string
+  (is (equalp "<!doctype html>
+<body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
               (->string '(:body (:h1 "My Blog") (:p "Some text " (:a ((:href . "")) "a link"))))))
-  (is (equalp "<!DOCTYPE html><HTML LANG=\"en\"></HTML>"
+  (is (equalp "<!DOCTYPE html>
+<HTML LANG=\"en\"></HTML>"
               (->string '(:html ((:lang . "en"))))))
-  (let ((expected-page-output "<!DOCTYPE html><HTML><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"><TITLE>Table of Contents</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"></SCRIPT></HEAD><BODY><H1>Table of Contents</H1><UL><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-1.html\"><SPAN>Story 1</SPAN></A></LI><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-2.html\"><SPAN>Story 2</SPAN></A></LI></UL></BODY></HTML>"))
+  (let ((expected-page-output "<!DOCTYPE html>
+<HTML><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"><TITLE>Table of Contents</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"></SCRIPT></HEAD><BODY><H1>Table of Contents</H1><UL><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-1.html\"><SPAN>Story 1</SPAN></A></LI><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-2.html\"><SPAN>Story 2</SPAN></A></LI></UL></BODY></HTML>"))
     (is (equalp
          expected-page-output
          (let ((links '(("Story 1" . "/story-1.html")
@@ -76,3 +81,15 @@
             (page2 "Table of Contents"
                    `(:ul ,@(loop :for (title . url) :in links
                                  :collect `(:li :class "item" ,(link url title)))))))))))
+
+(test *doctype*
+  (let ((*doctype* nil))
+    (is (equalp "<html></html>" (->string '(:html)))))
+  (let ((*doctype* :html5))
+    (is (equalp "<!DOCTYPE html>
+<html><head><meta name=\"charset\" value=\"utf-8\"></head></html>"
+                (->string '(:html (:head (:meta :name "charset" :value "utf-8")))))))
+  (let ((*doctype* :xhtml))
+    (is (equalp "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+<html><head><meta name=\"charset\" value=\"utf-8\"/></head></html>"
+                (->string '(:html (:head (:meta :name "charset" :value "utf-8"))))))))

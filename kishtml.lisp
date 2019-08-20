@@ -45,7 +45,7 @@
            (type list attrs children))
   (concatenate 'string "<" (symbol-name tag) (attrs->string attrs)
                (if (void-element-p tag)
-                   ">"
+                   (if (eq *doctype* :xhtml) "/>" ">")
                    (concatenate 'string ">" (mapconcat #'fragment->string children) "</" (symbol-name tag) ">"))))
 
 (defun fragment->string (obj)
@@ -81,6 +81,7 @@
 (defun ->string (&rest objs)
   (with-output-to-string (*standard-output*)
     (case *doctype*
-      (:html5 (write-string "<!DOCTYPE html>")))
+      (:html5 (write-line "<!DOCTYPE html>"))
+      (:xhtml (write-line "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">")))
     (loop :for obj :in objs
           :do (write-string (fragment->string obj)))))
