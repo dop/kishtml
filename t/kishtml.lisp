@@ -28,6 +28,7 @@
      ,@content)))
 
 (test ->string
+  (is (equalp "" (->fragment nil)))
   (is (equalp "<hr>" (->fragment '(:hr))))
   (is (equalp "<br>" (->fragment '(:br))))
   (is (equalp "<input type=\"text\" maxlength=20 tabindex=1 name=\"first_name\" required>"

@@ -52,6 +52,8 @@
   (cond
     ((stringp obj)
      (encode-entities obj))
+    ((null obj)
+     "")
     ((atom obj)
      (write-to-string obj))
     ((consp obj)
