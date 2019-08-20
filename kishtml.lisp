@@ -57,12 +57,22 @@
     ((atom obj)
      (write-to-string obj))
     ((consp obj)
-     (let ((tag (car obj))
-           (attrs (cadr obj)))
-       (cond ((and (listp attrs) (every #'pairp attrs))
-              (tag->string tag attrs (cddr obj)))
-             (t
-              (tag->string tag () (cdr obj))))))))
+     (let ((tag (first obj))
+           (attrs (second obj)))
+       (cond
+         ((and (keywordp tag) (consp attrs))
+          (cond ((every #'pairp attrs)
+                 (tag->string tag attrs (cddr obj)))
+                (t
+                 (tag->string tag () (cdr obj)))))
+         (t
+          (let* ((body nil)
+                 (attrs (loop :for rest :on (cdr obj) :by #'cddr
+                              :for name := (first rest)
+                              :while (keywordp name)
+                              :collect (cons name (second rest))
+                              :finally (setf body rest))))
+            (tag->string tag attrs body))))))))
 
 (defun ->fragment (&rest objs)
   (let ((*doctype* nil))

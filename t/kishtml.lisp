@@ -27,6 +27,17 @@
      (:h1 ,title)
      ,@content)))
 
+(defun page2 (title &rest content)
+  `(:html
+    (:head
+     (:meta :name "charset" :value "utf-8")
+     (:title ,title)
+     (:link :rel "stylesheet" :href "style.css" :type "text/css")
+     (:script :type "text/javascript" :src "scripts.js"))
+    (:body
+     (:h1 ,title)
+     ,@content)))
+
 (test ->string
   (is (equalp "" (->fragment nil)))
   (is (equalp "<hr>" (->fragment '(:hr))))
@@ -46,21 +57,22 @@
               (->fragment '(:h1 "<title>") '(:a ((:href . "http://search.com/?q=\"hello world\"")) "link"))))
   (is (equalp "<!doctype html><body><h1>My Blog</h1><p>Some text <a href=\"\">a link</a></p></body>"
               (->string '(:body (:h1 "My Blog") (:p "Some text " (:a ((:href . "")) "a link"))))))
-  (is (equalp "<!DOCTYPE html><HTML LANG=\"en\"><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"><TITLE>Donatas&apos; Blog</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"></SCRIPT></HEAD><BODY><H1>Donatas&apos; Blog</H1><P>This is my blog</P></BODY></HTML>"
-              (->string '(:html ((:lang . "en"))
-                          (:head
-                           (:meta ((:name . "charset") (:value . "utf-8")))
-                           (:title "Donatas' Blog")
-                           (:link ((:rel . "stylesheet") (:href . "style.css") (:type . "text/css")))
-                           (:script ((:type . "text/javascript") (:src . "scripts.js"))))
-                          (:body
-                           (:h1 "Donatas' Blog")
-                           (:p "This is my blog"))))))
-  (is (equalp
-       "<!DOCTYPE html><HTML><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"><TITLE>Table of Contents</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"></SCRIPT></HEAD><BODY><H1>Table of Contents</H1><UL><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-1.html\"><SPAN>Story 1</SPAN></A></LI><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-2.html\"><SPAN>Story 2</SPAN></A></LI></UL></BODY></HTML>"
-       (let ((links '(("Story 1" . "/story-1.html")
-                      ("Story 2" . "/story-2.html"))))
-         (->string
-          (page "Table of Contents"
-            `(:ul ,@(loop :for (title . url) :in links
-                          :collect `(:li ((:class . "item")) ,(link url title))))))))))
+  (is (equalp "<!DOCTYPE html><HTML LANG=\"en\"></HTML>"
+              (->string '(:html ((:lang . "en"))))))
+  (let ((expected-page-output "<!DOCTYPE html><HTML><HEAD><META NAME=\"charset\" VALUE=\"utf-8\"><TITLE>Table of Contents</TITLE><LINK REL=\"stylesheet\" HREF=\"style.css\" TYPE=\"text/css\"><SCRIPT TYPE=\"text/javascript\" SRC=\"scripts.js\"></SCRIPT></HEAD><BODY><H1>Table of Contents</H1><UL><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-1.html\"><SPAN>Story 1</SPAN></A></LI><LI CLASS=\"item\"><A CLASS=\"link\" HREF=\"/story-2.html\"><SPAN>Story 2</SPAN></A></LI></UL></BODY></HTML>"))
+    (is (equalp
+         expected-page-output
+         (let ((links '(("Story 1" . "/story-1.html")
+                        ("Story 2" . "/story-2.html"))))
+           (->string
+            (page "Table of Contents"
+                  `(:ul ,@(loop :for (title . url) :in links
+                                :collect `(:li ((:class . "item")) ,(link url title)))))))))
+    (is (equalp
+         expected-page-output
+         (let ((links '(("Story 1" . "/story-1.html")
+                        ("Story 2" . "/story-2.html"))))
+           (->string
+            (page2 "Table of Contents"
+                   `(:ul ,@(loop :for (title . url) :in links
+                                 :collect `(:li :class "item" ,(link url title)))))))))))
